@@ -22,14 +22,21 @@ fn extract_reads(p: &str, selected_lines: &Vec<usize>, outpath: &str) -> Result<
 
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
-    for tpl in reader.lines().enumerate() {
-        let ( line_number, line ) = tpl;
-        if selected_lines.contains(&(line_number+1)) {
-            let mut line_content = line.unwrap();
-            line_content += "\n";
-            e.write_all(line_content.as_bytes())?;
-        }
-    }
+    reader.lines().enumerate()
+    .filter(|(n, line)| selected_lines.contains(&(n+1)))
+    .for_each(|(n, line)| {
+        let mut line_content = line.unwrap();
+        line_content += "\n";
+        e.write_all(line_content.as_bytes());
+    });
+    // for tpl in reader.lines().enumerate() {
+    //     let ( line_number, line ) = tpl;
+    //     if selected_lines.contains(&(line_number+1)) {
+    //         let mut line_content = line.unwrap();
+    //         line_content += "\n";
+    //         e.write_all(line_content.as_bytes())?;
+    //     }
+    // }
     let compressed_bytes = e.finish()?;
     writer.write(&compressed_bytes)?;
     Ok(())
@@ -55,7 +62,7 @@ fn select_reads(nreads: f32, fraction: f32) -> Vec<usize> {
     if (fraction > 0.0) & (fraction < 1.0){
 
         let nselected: usize = (nreads * fraction).round() as usize;
-        eprintln!("{} ({}%) reads will be sampled.", nselected, fraction * 100.0);
+        eprintln!("{} / {} reads ({}%) will be sampled.", nselected, nreads, fraction * 100.0);
 
         let mut rng = rand::thread_rng();
         let distribution = Uniform::from(reads_range);
@@ -94,6 +101,7 @@ fn main() -> std::io::Result<()> {
     let len_fq1 = count_lines(&args[2])?;
     let len_fq2 = count_lines(&args[3])?;
     assert_eq!(len_fq1, len_fq2);
+    eprintln!("{} reads detected", len_fq1 / 4);
 
     let nreads: f32 = len_fq1 as f32 / 4.0;
     let selected_lines: Vec<usize> = select_reads(nreads, *fraction);
