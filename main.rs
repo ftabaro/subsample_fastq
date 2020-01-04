@@ -9,9 +9,11 @@ use rand::distributions::{Distribution, Uniform};
 
 use flate2::Compression;
 use flate2::write::GzEncoder;
+use flate2::read::GzDecoder;
 
 fn extract_reads(p: &str, selected_lines: &Vec<usize>, outpath: &str) -> Result<(), std::io::Error> {
-    let f = File::open(p)?;
+    //let f = File::open(p)?;
+    let d = GzDecoder::new(p)?;
     let reader = BufReader::new(f);
 
     let fo = File::create(outpath)?;
@@ -33,7 +35,8 @@ fn extract_reads(p: &str, selected_lines: &Vec<usize>, outpath: &str) -> Result<
 }
 
 fn count_lines(p: &str) -> Result<usize, std::io::Error> {
-    let f = File::open(p)?;
+    let d = GzDecoder::new(p)?;
+    //let f = File::open(p)?;
     let reader = BufReader::new(f);
     Ok(reader.lines().count())
 }
