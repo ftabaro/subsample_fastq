@@ -1,4 +1,5 @@
 extern crate rand;
+extern crate flate2;
 
 use std::io::prelude::*;
 use std::io::{BufReader,BufWriter};
